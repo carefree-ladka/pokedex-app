@@ -1,4 +1,4 @@
-import Image from "next/image"
+
 import { useState } from "react"
 import { useSelector } from "react-redux"
 import {
@@ -45,10 +45,8 @@ export default function PokemonPreview({ close }) {
               backgroundColor: getPokemonColor(selectedPokemon),
             }}
           >
-            <Image
+            <img
               src={selectedPokemon?.sprites?.other?.dream_world?.front_default}
-              width={150}
-              height={150}
               alt={selectedPokemon.name}
               className="w-full h-full object-contain"
             />

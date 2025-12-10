@@ -1,4 +1,3 @@
-import { useRouter } from "next/router"
 import React, { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import {
@@ -14,7 +13,6 @@ import PokemonCard from "./PokemonCard"
 import PokemonPreview from "./PokemonPreview"
 
 export default function Pokemon() {
-  const router = useRouter()
   const [currentPage, setCurrentPage] = useState(1)
   const [pokemonsPerPage] = useState(18)
   const [pageLoading, setPageLoading] = useState(false)
@@ -24,9 +22,10 @@ export default function Pokemon() {
 
   // Sync page from URL
   useEffect(() => {
-    const { page } = router.query
+    const params = new URLSearchParams(window.location.search)
+    const page = params.get('page')
     if (page && !isNaN(page)) {
-      setCurrentPage(parseInt(page))
+      setCurrentPage(parseInt(page, 10))
     }
   }, [])
 

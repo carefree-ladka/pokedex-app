@@ -1,4 +1,4 @@
-import Image from "next/image"
+
 import toUpperCase from "../../utils/upperCaseName"
 import { getPokemonColor } from "../../utils/pokemonColors"
 
@@ -25,11 +25,9 @@ export default function PokemonCard({ pokemons, showModal, colors }) {
           {/* Pokemon Image */}
           <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mb-2 sm:mb-3 flex items-center justify-center bg-gray-100 rounded-lg">
             {pokemon?.sprites?.other?.dream_world?.front_default || pokemon?.sprites?.front_default ? (
-              <Image
+              <img
                 src={pokemon.sprites.other?.dream_world?.front_default || pokemon.sprites.front_default}
                 alt={pokemon.name || 'Pokemon'}
-                width={80}
-                height={80}
                 className="object-contain w-full h-full"
                 onError={(e) => {
                   e.target.style.display = 'none'

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { useRouter } from "next/router"
 import { useDispatch, useSelector } from "react-redux"
 import {
   setSearchFilter,
@@ -13,7 +12,6 @@ import GenderFilter from "../dropdowns/GenderFilter"
 import SearchBar from "./SearchBar"
 
 export default function Home({ typeOptions, genderOptions }) {
-  const router = useRouter()
   const dispatch = useDispatch()
   const filters = useSelector(selectFilters)
 
@@ -23,7 +21,10 @@ export default function Home({ typeOptions, genderOptions }) {
 
   // Sync URL params with state
   useEffect(() => {
-    const { search, types, genders } = router.query
+    const params = new URLSearchParams(window.location.search)
+    const search = params.get('search')
+    const types = params.get('types')
+    const genders = params.get('genders')
     if (search) dispatch(setSearchFilter(search))
     if (types) dispatch(setTypeFilters(types.split(',')))
     if (genders) dispatch(setGenderFilters(genders.split(',')))
