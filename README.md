@@ -1,27 +1,57 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Pokédex App
 
-#POKEDEX
+A modern, responsive Pokédex application built with React and Vite.
 
-This app has used the following tech stacks:
+## Tech Stack
 
-1. Next.js
-2. Tailwind CSS
-3. Redux Toolkit
+- **React** - UI library
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Styling
+- **Redux Toolkit** - State management
+- **PokéAPI** - Pokémon data
 
-## Access the url below to see the live project:
+## Live Demo
 
-[Next.js](https://nextjs.org/)
+🚀 **[View Live App](https://carefree-ladka.github.io/pokedex-app/)**
+
+## Features
+
+- 🔍 Search Pokémon by name or number
+- 🏷️ Filter by type (fire, water, grass, etc.)
+- ⚧️ Filter by gender
+- 📱 Fully responsive design
+- 📄 Pagination with URL state
+- 🎨 Official Pokémon type colors
+- ⚡ Fast loading with caching
 
 ## Getting Started
 
-First, run the development server:
-
+1. **Clone the repository**
 ```bash
-npm run dev
-# or
-yarn dev
+git clone https://github.com/carefree-ladka/pokedex-app.git
+cd pokedex-app
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+3. **Start development server**
+```bash
+npm run dev
+```
+
+4. **Open your browser**
+Visit [http://localhost:5173](http://localhost:5173)
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run deploy` - Deploy to GitHub Pages
+
+## Deployment
+
+The app is automatically deployed to GitHub Pages using GitHub Actions when changes are pushed to the main branch.
