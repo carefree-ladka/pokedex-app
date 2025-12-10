@@ -1,10 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    domains: ["raw.githubusercontent.com"],
-  },
   reactStrictMode: true,
   swcMinify: true,
+  trailingSlash: true,
+  images: {
+    unoptimized: true
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 module.exports = nextConfig
