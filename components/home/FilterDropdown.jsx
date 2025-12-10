@@ -1,80 +1,78 @@
-/* eslint-disable max-len */
 import React from "react"
 import GenderFilter from "../dropdowns/GenderFilter"
 import TypeFilter from "../dropdowns/TypeFilter"
 
 export default function FilterDropdown({
-  handleFilterDropdown,
-  gender,
-  typesForSmallDevices,
-  handleDropDownChange,
-  types,
-  resetFilter,
-  applyFilter,
+  isOpen,
+  onClose,
+  typeOptions,
+  genderOptions,
+  onFilterChange,
+  onReset,
 }) {
+  if (!isOpen) return null
+
   return (
-    <div className=" relative -top-60 -left-[0.111px] sm:top-0 sm:left-0  w-[337px]  h-[753px] sm:h-0 bg-[#fff] rounded-lg sm:bg-[#deeded]">
-      <div className=" px-5 pt-6">
-        <div className=" sm:hidden flex items-center justify-between">
-          <h2 className="mb-2 w-[72px] h-[29px] text-[#2E3156] font-extrabold text-[25px] leading-7">
-            Filters
-          </h2>
-          <button type="button" className="pr-2" onClick={handleFilterDropdown}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+    <>
+      {/* Mobile Overlay */}
+      <div 
+        className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+      />
+      
+      {/* Filter Panel */}
+      <div className={`
+        fixed md:relative inset-x-0 bottom-0 md:inset-auto
+        bg-white md:bg-transparent rounded-t-lg md:rounded-none
+        shadow-lg md:shadow-none z-50 md:z-auto
+        max-h-[80vh] md:max-h-none overflow-y-auto
+        md:grid md:grid-cols-2 md:gap-6 md:mt-6
+      `}>
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-900">Filters</h2>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <hr className="sm:hidden mb-5 w-[295px] bg-[#2E315626] border border-[#2E315626]" />
-        <div className="sm:relative sm:-top-6 sm:pl-12 sm:grid sm:grid-cols-2 sm:gap-x-40">
-          <div className="">
+
+        {/* Filter Content */}
+        <div className="p-4 md:p-0 space-y-6 md:space-y-0 md:contents">
+          <div>
             <TypeFilter
-              options={!typesForSmallDevices ? types.slice(0, 6) : types}
-              handleChange={handleDropDownChange}
-              typesForSmallDevices={typesForSmallDevices}
+              options={typeOptions}
+              handleChange={onFilterChange}
             />
           </div>
-          <div className="">
+          <div>
             <GenderFilter
-              options={gender}
-              handleChange={handleDropDownChange}
+              options={genderOptions}
+              handleChange={onFilterChange}
             />
           </div>
         </div>
-      </div>
-      <div className="sm:hidden sticky top-[91%] z-999 w-[336px] h-[67px] rounded-lg  shadow-footer">
-        <div className=" flex items-center justify-evenly pt-3 text-[14px] leading-[16.41px]">
-          <div>
-            <button
-              type="button"
-              className="w-[138.61px] h-[37px] rounded-lg border border-[ #2E3156] "
-              onClick={resetFilter}
-            >
-              Reset
-            </button>
-          </div>
-          <div>
-            <button
-              type="button"
-              className="w-[138.61px] h-[37px] rounded-lg bg-[#2E3156] text-[#fff]"
-              onClick={applyFilter}
-            >
-              Apply
-            </button>
-          </div>
+
+        {/* Mobile Actions */}
+        <div className="md:hidden flex gap-3 p-4 border-t bg-gray-50">
+          <button
+            onClick={onReset}
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+          >
+            Reset
+          </button>
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Apply
+          </button>
         </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -1,161 +1,124 @@
-/* eslint-disable max-len */
-import React, { useState } from "react"
-import toUpperCase from "../../utils/upperCaseName"
+import React, { useEffect, useRef, useState } from "react"
+
+const toUpperCase = (str) => {
+  if (!str) {
+    return ""
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
 
 export default function Select({
-  placeholder,
-  options,
+  placeholder = "Select Options",
+  options = [],
   handleChange,
-  typesForSmallDevices,
+  isMultiColumn = false,
 }) {
-  const [isDropDownOpen, setIsDropDownOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  const selectedOptions = options.filter((option) => option.ischecked)
+  const selectedCount = selectedOptions.length
+  const firstSelected = selectedOptions[0]
+
+  const displayText = () => {
+    if (selectedCount === 0) {
+      return "None selected"
+    }
+    if (selectedCount === 1) {
+      return toUpperCase(firstSelected.value)
+    }
+    return `${toUpperCase(firstSelected.value)} +${selectedCount - 1} more`
+  }
+
+  const toggleDropdown = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsOpen(!isOpen)
+  }
 
   return (
-    <div className="w-[194px] text-unkown pb-4 sm:border-none  ">
-      <div className="w-[295px] rounded-lg border border-[#2E3156] sm:border-none ">
-        <div onClick={() => setIsDropDownOpen((prev) => !prev)}>
-          <h3 className="pb-1 hidden sm:block text-[16px] sm:font-normal sm:leading-5">
-            {placeholder}
-          </h3>
+    <div ref={dropdownRef} className="relative w-full">
+      {/* Label */}
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {placeholder}
+      </label>
+
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={toggleDropdown}
+        className={`
+          w-full flex items-center justify-between px-4 py-3
+          bg-gray-50 border border-gray-300 rounded-lg
+          hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500
+          transition-all duration-200 min-h-[48px]
+          ${isOpen ? "border-blue-500 ring-2 ring-blue-500" : ""}
+        `}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+      >
+        <span className="text-sm text-gray-700 truncate text-left">
+          {displayText()}
+        </span>
+        <svg
+          className={`w-5 h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ml-2 ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+
+      {/* Dropdown Content */}
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto backdrop-blur-sm">
           <div
-            className="sm:w-[194px] sm:h-[57px]  sm:border-none w-[295px] h-[49px] sm:bg-inputBg rounded-lg flex items-center p-4  bg-white cursor-pointer"
-            role="menubar"
-            tabIndex={0}
-            style={{
-              border: `${isDropDownOpen ? "none" : "border-[#2E3156]"}`,
-            }}
+            className={`p-3 ${
+              isMultiColumn ? "grid grid-cols-2 gap-2" : "space-y-2"
+            }`}
+            role="listbox"
           >
-            <h3 className="pb-1 min-w-[59px] h-[21px] font-extrabold leading-[21.09px] text-[18px] sm:hidden">
-              {placeholder}
-            </h3>
-            <hr className="sm:hidden w-[31px] -rotate-90 opacity-[0.15] pr-6" />
-            <div className="flex items-center ">
-              <div className="w-[194px] h-[16px] text-[14px] ">
-                <span className="">
-                  <span className="sm:hidden">(</span>
-                  {toUpperCase(options[0].value)}
+            {options.map((option) => (
+              <label
+                key={option.id || option.value}
+                className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={option.ischecked || false}
+                  onChange={(e) => {
+                    e.stopPropagation()
+                    handleChange?.(e.target, option.type)
+                  }}
+                  value={option.value}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">
+                  {toUpperCase(option.value)}
                 </span>
-                <span className="font-bold text-[#2E3156] pl-2 sm:pl-[1px]">
-                  + {options.length - 1} More
-                </span>
-                <span className="sm:hidden">)</span>
-              </div>
-
-              <div className="relative ">
-                <span className="hidden sm:block absolute right-11 -top-3 w-[8px] h-[4px]">
-                  {!isDropDownOpen ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M4.5 15.75l7.5-7.5 7.5 7.5"
-                      />
-                    </svg>
-                  )}
-                </span>
-
-                <span className="sm:hidden absolute w-[24px] h-[24px] right-6 -top-3">
-                  {!isDropDownOpen ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-6 h-6"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  )}
-                </span>
-              </div>
-            </div>
+              </label>
+            ))}
           </div>
-          {isDropDownOpen && <hr className=" sm:hidden w-[249px] mx-auto" />}
         </div>
-        {isDropDownOpen && (
-          <div className="w-[295px] sm:w-[194px] sm:bg-inputBg mt-2 font-normal bg-white p-4 rounded-lg">
-            <div
-              className={`pb-2 ${
-                placeholder === "Type" && typesForSmallDevices
-                  ? "grid grid-cols-2 gap-2"
-                  : ""
-              }`}
-              role="listbox"
-            >
-              {options.map((selected) => (
-                <div
-                  role="option"
-                  aria-selected
-                  aria-labelledby="custom-dropdown"
-                  aria-label="submenu"
-                  key={selected.id}
-                  className="pb-2"
-                >
-                  <input
-                    id={selected.id}
-                    onChange={(event) =>
-                      handleChange(event.target, selected.type)
-                    }
-                    type="checkbox"
-                    checked={selected.ischecked}
-                    value={selected.value}
-                    className="accent-[#2E3156] scale-125"
-                  />
-                  <label
-                    htmlFor={selected.id}
-                    className="pl-2 text-[#2E3156] text-sm font-normal"
-                  >
-                    {toUpperCase(selected.value)}
-                  </label>
-                  <hr className="hidden sm:bg-[#2E315633] sm:mt-2 sm:block" />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }

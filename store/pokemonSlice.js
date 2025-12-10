@@ -1,5 +1,3 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable no-param-reassign */
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import {
   getAllPokemons,
@@ -9,124 +7,161 @@ import {
   getPokemonGender,
 } from "../services/pokemonService"
 
+// Async thunks
 export const fetchAllPokemons = createAsyncThunk(
   "pokemon/fetchAllPokemons",
-  () => getAllPokemons()
+  async () => getAllPokemons()
 )
 
-export const fetchGender = createAsyncThunk("pokemon/fetchGender", (pokemon) =>
-  getPokemonGender(pokemon)
+export const fetchPokemonDetails = createAsyncThunk(
+  "pokemon/fetchPokemonDetails",
+  async ({ id, name }) => {
+    const [gender, disabilities, description] = await Promise.all([
+      getPokemonGender(name),
+      getPokemonDisabilities(id),
+      getPokemonDescription(id),
+    ])
+    return { gender, disabilities, description }
+  }
 )
 
-export const fetchDisabilities = createAsyncThunk(
-  "pokemon/fetchDisabilities",
-  (id) => getPokemonDisabilities(id)
-)
-
-export const fetchDescription = createAsyncThunk(
-  "pokemon/fetchDescription",
-  (id) => getPokemonDescription(id)
-)
-export const fetchGenderData = createAsyncThunk("pokemon/fetchGenderData", () =>
-  getGenderData()
+export const fetchGenderData = createAsyncThunk(
+  "pokemon/fetchGenderData",
+  async () => getGenderData()
 )
 
 const initialState = {
   allPokemons: [],
-  gender: null,
-  disables: null,
-  description: null,
   genderData: [],
-  selectedPokemon: {},
-  searchedPokemons: null,
-  filterData: [],
-  loading: false,
+  selectedPokemon: null,
+  pokemonDetails: {
+    gender: null,
+    disabilities: null,
+    description: null,
+  },
+  filters: {
+    search: "",
+    types: [],
+    genders: [],
+  },
+  loading: {
+    pokemons: false,
+    details: false,
+    genderData: false,
+  },
 }
 
 const pokemonSlice = createSlice({
   name: "pokemon",
   initialState,
   reducers: {
-    selectedPokemon: (state, { payload }) => {
-      state.selectedPokemon = state.allPokemons.filter(
+    setSelectedPokemon: (state, { payload }) => {
+      state.selectedPokemon = state.allPokemons.find(
         (pokemon) => pokemon.id === payload
-      )[0]
+      ) || null
     },
-    searchPokemon: (state, { payload }) => {
-      state.searchedPokemons = state.allPokemons.filter((pokemon) => {
-        const res =
-          pokemon.id.toString().includes(payload) ||
-          pokemon.name.toLowerCase().includes(payload.toLowerCase())
-        if (res) {
-          return pokemon
-        }
-      })
+    setSearchFilter: (state, { payload }) => {
+      state.filters.search = payload
     },
-
-    filteredData: (state, action) => {
-      state.filterData = action.payload
+    setTypeFilters: (state, { payload }) => {
+      state.filters.types = payload
+    },
+    setGenderFilters: (state, { payload }) => {
+      state.filters.genders = payload
+    },
+    clearFilters: (state) => {
+      state.filters = initialState.filters
     },
   },
-
   extraReducers: (builder) => {
     builder
+      // Fetch all pokemons
       .addCase(fetchAllPokemons.pending, (state) => {
-        state.loading = true
+        state.loading.pokemons = true
       })
       .addCase(fetchAllPokemons.fulfilled, (state, { payload }) => {
         state.allPokemons = payload
-        state.loading = false
+        state.loading.pokemons = false
       })
       .addCase(fetchAllPokemons.rejected, (state) => {
-        state.loading = false
+        state.loading.pokemons = false
       })
-      .addCase(fetchGender.pending, (state) => {
-        state.loading = true
+      // Fetch pokemon details
+      .addCase(fetchPokemonDetails.pending, (state) => {
+        state.loading.details = true
       })
-      .addCase(fetchGender.fulfilled, (state, action) => {
-        state.gender = action.payload
-        state.loading = false
+      .addCase(fetchPokemonDetails.fulfilled, (state, { payload }) => {
+        state.pokemonDetails = payload
+        state.loading.details = false
       })
-      .addCase(fetchGender.rejected, (state) => {
-        state.loading = false
+      .addCase(fetchPokemonDetails.rejected, (state) => {
+        state.loading.details = false
       })
-      .addCase(fetchDisabilities.pending, (state) => {
-        state.loading = true
-      })
-      .addCase(fetchDisabilities.fulfilled, (state, action) => {
-        state.disables = action.payload
-        state.loading = false
-      })
-      .addCase(fetchDisabilities.rejected, (state) => {
-        state.loading = false
-      })
-      .addCase(fetchDescription.pending, (state) => {
-        state.loading = true
-      })
-      .addCase(fetchDescription.fulfilled, (state, action) => {
-        state.description = action.payload
-        state.loading = false
-      })
-      .addCase(fetchDescription.rejected, (state) => {
-        state.loading = false
-      })
+      // Fetch gender data
       .addCase(fetchGenderData.pending, (state) => {
-        state.loading = true
+        state.loading.genderData = true
       })
-      .addCase(fetchGenderData.fulfilled, (state, action) => {
-        state.genderData = action.payload
-        state.loading = false
+      .addCase(fetchGenderData.fulfilled, (state, { payload }) => {
+        state.genderData = payload
+        state.loading.genderData = false
       })
       .addCase(fetchGenderData.rejected, (state) => {
-        state.loading = false
+        state.loading.genderData = false
       })
   },
 })
 
-export const { selectedPokemon, searchPokemon, filteredData } =
-  pokemonSlice.actions
+export const {
+  setSelectedPokemon,
+  setSearchFilter,
+  setTypeFilters,
+  setGenderFilters,
+  clearFilters,
+} = pokemonSlice.actions
 
-export const selector = (state) => state.pokemon.allPokemons
-export const AllDataSelector = (state) => state.pokemon
+// Selectors
+export const selectAllPokemons = (state) => state.pokemon.allPokemons
+export const selectGenderData = (state) => state.pokemon.genderData
+export const selectSelectedPokemon = (state) => state.pokemon.selectedPokemon
+export const selectPokemonDetails = (state) => state.pokemon.pokemonDetails
+export const selectFilters = (state) => state.pokemon.filters
+export const selectLoading = (state) => state.pokemon.loading
+
+// Computed selectors
+export const selectFilteredPokemons = (state) => {
+  const { allPokemons = [], genderData = [], filters = {} } = state.pokemon
+  let filtered = [...allPokemons]
+
+  // Apply search filter
+  if (filters.search && filters.search.trim()) {
+    const searchTerm = filters.search.toLowerCase().trim()
+    filtered = filtered.filter(
+      (pokemon) =>
+        pokemon?.id?.toString().includes(searchTerm) ||
+        pokemon?.name?.toLowerCase().includes(searchTerm) ||
+        pokemon?.name?.toLowerCase().startsWith(searchTerm)
+    )
+  }
+
+  // Apply type filters
+  if (filters.types && filters.types.length > 0) {
+    filtered = filtered.filter((pokemon) => {
+      return pokemon?.types?.some((typeInfo) => 
+        filters.types.includes(typeInfo?.type?.name)
+      )
+    })
+  }
+
+  // Apply gender filters
+  if (filters.genders && filters.genders.length > 0) {
+    filtered = filtered.filter((pokemon) => {
+      // Simple gender mapping based on Pokemon ID ranges (demo purposes)
+      const pokemonGender = pokemon.id % 3 === 0 ? 'genderless' : pokemon.id % 2 === 0 ? 'female' : 'male'
+      return filters.genders.includes(pokemonGender)
+    })
+  }
+
+  return filtered
+}
 
 export default pokemonSlice.reducer

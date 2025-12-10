@@ -1,138 +1,128 @@
-/* eslint-disable no-unused-expressions */
-/* eslint-disable no-nested-ternary */
-/* eslint-disable max-len */
-/* eslint-disable jsx-a11y/label-has-associated-control */
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/router"
 import { useDispatch, useSelector } from "react-redux"
-import { filteredData, searchPokemon } from "../../store/pokemonSlice"
-import { filterPokemons } from "../../utils/utils"
 import {
-  types as initialTypes,
-  gender as initialGenderState,
-} from "../../utils/types"
-import FilterDropdown from "./FilterDropdown"
+  setSearchFilter,
+  setTypeFilters,
+  setGenderFilters,
+  clearFilters,
+  selectFilters,
+} from "../../store/pokemonSlice"
+import TypeFilter from "../dropdowns/TypeFilter"
+import GenderFilter from "../dropdowns/GenderFilter"
 import SearchBar from "./SearchBar"
 
-export default function Home({
-  search,
-  setSearch,
-  types,
-  gender,
-  setGender,
-  setTypes,
-}) {
-  const { allPokemons, genderData } = useSelector((state) => state.pokemon)
-  const result = filterPokemons(allPokemons, genderData)
-  const [activeFilter, setActiveFilter] = useState(false)
-  const [filterData, setFilterData] = useState()
+export default function Home({ typeOptions, genderOptions }) {
+  const router = useRouter()
   const dispatch = useDispatch()
-  const [typesForSmallDevices, setTypesForSmallDevices] = useState(false)
-  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
+  const filters = useSelector(selectFilters)
 
-  useEffect(() => {
-    !typesForSmallDevices && setIsFilterDropdownOpen(true)
-    typesForSmallDevices && setIsFilterDropdownOpen(false)
-  }, [typesForSmallDevices])
+  // Local state for managing filter options UI
+  const [localTypeOptions, setLocalTypeOptions] = useState(typeOptions)
+  const [localGenderOptions, setLocalGenderOptions] = useState(genderOptions)
 
+  // Sync URL params with state
   useEffect(() => {
-    function handleTypes() {
-      if (window.innerWidth < 600) {
-        setTypesForSmallDevices(true)
-      } else {
-        setTypesForSmallDevices(false)
-      }
+    const { search, types, genders } = router.query
+    if (search) dispatch(setSearchFilter(search))
+    if (types) dispatch(setTypeFilters(types.split(',')))
+    if (genders) dispatch(setGenderFilters(genders.split(',')))
+  }, [])
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    
+    if (filters.search) {
+      params.set('search', filters.search)
+    } else {
+      params.delete('search')
     }
-    window.addEventListener("resize", handleTypes)
-    return () => handleTypes()
-  })
+    
+    if (filters.types?.length) {
+      params.set('types', filters.types.join(','))
+    } else {
+      params.delete('types')
+    }
+    
+    if (filters.genders?.length) {
+      params.set('genders', filters.genders.join(','))
+    } else {
+      params.delete('genders')
+    }
+    
+    const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname
+    window.history.replaceState({}, '', newUrl)
+  }, [filters])
 
-  const handleChange = ({ target: { value } }) => {
-    setSearch(value)
-    dispatch(searchPokemon(value))
+  const handleSearchChange = (value) => {
+    dispatch(setSearchFilter(value))
   }
 
-  useEffect(() => {
-    setFilterData(result)
-  }, [allPokemons])
+  const handleFilterChange = (target, filterType) => {
+    const isChecked = target.checked
+    const value = target.value
 
-  const handleFilter = () => {
-    const filterTypes = (typ) =>
-      typ.filter((item) => item.ischecked).map((item) => item.value)
-    const typesValues = filterTypes(types)
-    const genderValues = filterTypes(gender)
-    const updatedData = result?.filter((item) => {
-      let val
-      if (typesValues.length) {
-        val = typesValues.includes(item.type)
-      }
-      if (genderValues.length) {
-        val = genderValues.includes(item.gender)
-      }
-      if (genderValues.length && typesValues.length) {
-        val =
-          typesValues.includes(item.type) && genderValues.includes(item.gender)
-      }
-      return val
-    })
-    setFilterData(updatedData)
-    !typesForSmallDevices && dispatch(filteredData(updatedData))
-  }
-  const handleDropDownChange = (target, type) => {
-    const res = type === "types" ? types : type === "gender" ? gender : ""
-    const state = res.map((item) => {
-      if (item.value.toLowerCase() === target.value.toLowerCase()) {
-        return {
-          ...item,
-          ischecked: !item.ischecked,
-        }
-      }
-      return item
-    })
-    type === "types" && setTypes(state)
-    setActiveFilter(true)
-    type === "gender" && setGender(state)
-    setActiveFilter(true)
+    if (filterType === "types") {
+      const updatedTypes = localTypeOptions.map((type) =>
+        type.value === value ? { ...type, ischecked: isChecked } : type
+      )
+      setLocalTypeOptions(updatedTypes)
+      
+      const selectedTypes = updatedTypes
+        .filter((type) => type.ischecked)
+        .map((type) => type.value)
+      dispatch(setTypeFilters(selectedTypes))
+    } else if (filterType === "gender") {
+      const updatedGenders = localGenderOptions.map((gender) =>
+        gender.value === value ? { ...gender, ischecked: isChecked } : gender
+      )
+      setLocalGenderOptions(updatedGenders)
+      
+      const selectedGenders = updatedGenders
+        .filter((gender) => gender.ischecked)
+        .map((gender) => gender.value)
+      dispatch(setGenderFilters(selectedGenders))
+    }
   }
 
-  useEffect(() => {
-    activeFilter && handleFilter()
-  }, [types, gender])
-
-  const handleFilterDropdown = () => {
-    setIsFilterDropdownOpen((prev) => !prev)
-  }
-
-  const resetFilter = () => {
-    setTypes(initialTypes)
-    setGender(initialGenderState)
-    dispatch(filteredData(filterData))
-    setIsFilterDropdownOpen(false)
-  }
-
-  const applyFilter = () => {
-    dispatch(filteredData(filterData))
-    setIsFilterDropdownOpen(false)
+  const handleReset = () => {
+    // Reset local state
+    setLocalTypeOptions(typeOptions.map(type => ({ ...type, ischecked: false })))
+    setLocalGenderOptions(genderOptions.map(gender => ({ ...gender, ischecked: false })))
+    
+    // Reset Redux state
+    dispatch(clearFilters())
   }
 
   return (
-    <section>
-      <div className="grid grid-cols-1 pl-[28px] sm:grid-cols-2">
-        <SearchBar
-          handleChange={handleChange}
-          search={search}
-          handleFilterDropdown={handleFilterDropdown}
-        />
-        {isFilterDropdownOpen && (
-          <FilterDropdown
-            handleFilterDropdown={handleFilterDropdown}
-            gender={gender}
-            typesForSmallDevices={typesForSmallDevices}
-            handleDropDownChange={handleDropDownChange}
-            types={types}
-            resetFilter={resetFilter}
-            applyFilter={applyFilter}
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        {/* Search and Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <SearchBar
+            value={filters.search}
+            onChange={handleSearchChange}
           />
-        )}
+          <TypeFilter
+            options={localTypeOptions}
+            handleChange={handleFilterChange}
+          />
+          <GenderFilter
+            options={localGenderOptions}
+            handleChange={handleFilterChange}
+          />
+        </div>
+        
+        {/* Reset Button */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleReset}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Clear Filters
+          </button>
+        </div>
       </div>
     </section>
   )

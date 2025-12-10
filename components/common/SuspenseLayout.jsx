@@ -1,6 +1,6 @@
 import React, { Suspense } from "react"
-import Loader from "./Loader"
+import PokemonLoader from "./PokemonLoader"
 
-export default function SuspenseLayout({ children }) {
-  return <Suspense fallback={<Loader />}>{children}</Suspense>
+export default function SuspenseLayout({ children, fallback }) {
+  return <Suspense fallback={fallback || <PokemonLoader />}>{children}</Suspense>
 }
